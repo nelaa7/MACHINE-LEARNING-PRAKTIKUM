@@ -1,44 +1,84 @@
 import random
+import numpy as np  
+from sklearn.preprocessing import LabelEncoder
+import pandas as pd
 
-#definisikan nilai awal
+# Definisikan nilai awal
 strLength = 5
 ukuranPopulasi = 10
 generasiMaks = 50
 kCrossOv = 0.8
 mutation_prob = 0.1
 
+# Inisialisasi LabelEncoder
+label_encoder = LabelEncoder()
+
+# Load data from Excel file
+# file_path = "pub_england.xlsx"
+# file_path = "fertilty.xlsx"
+file_path = "geolocation.xlsx"
+sheet_name = "Sheet1"
+df = pd.read_excel(file_path, sheet_name=sheet_name)
+
+# Encode the 'Name' column
+# encoded_cities = label_encoder.fit_transform(df["name"].astype(str))
+# encoded_cities = label_encoder.fit_transform(df["State"].astype(str))
+encoded_cities = label_encoder.fit_transform(df["no"].astype(str))
+
+
 def fitness(chromo):
-    return chromo.count('1')
+    return np.sum(
+        chromo == 1
+    )  # Count the occurrences of 1 (assuming labels are now integers)
+
 
 def crossover(parent1, parent2):
-    cross_point = random.randint(1, strLength - 1)
-    child1 = parent1[:cross_point] + parent2[cross_point:]
-    child2 = parent2[:cross_point] + parent1[cross_point:]
+    min_length = min(len(parent1), len(parent2))
+    cross_point = random.randint(1, min_length - 1)
+
+    child1 = np.concatenate((parent1[:cross_point], parent2[cross_point:]), axis=None)
+    child2 = np.concatenate((parent2[:cross_point], parent1[cross_point:]), axis=None)
+
     return child1, child2
+
 
 def mutasi(chromosome):
     mutation_point = random.randint(0, strLength - 1)
-    mutasid_chromosome = list(chromosome)
-    if mutasid_chromosome[mutation_point] == '1':
-        mutasid_chromosome[mutation_point] = '0'
+    mutated_chromosome = list(chromosome)
+    if mutated_chromosome[mutation_point] == 1:
+        mutated_chromosome[mutation_point] = 0
     else:
-        mutasid_chromosome[mutation_point] = '1'
-    return ''.join(mutasid_chromosome)
+        mutated_chromosome[mutation_point] = 1
+    return mutated_chromosome
 
+
+# Inisialisasi populasi menggunakan LabelEncoder
 populasi = []
 for i in range(ukuranPopulasi):
-    chromosome = ''.join(random.choice(['0', '1']) for _ in range(strLength))
+    chromosome = label_encoder.transform(
+        # random.sample(df["name"].astype(str).tolist(), strLength)
+        # random.sample(df["State"].astype(str).tolist(), strLength)
+        random.sample(df["no"].astype(str).tolist(), strLength)
+    )
     populasi.append(chromosome)
 
 for generation in range(generasiMaks):
-    fitness_scores = []
-    for chromosome in populasi:
-        fitness_scores.append(fitness(chromosome))
+    
+    fitness_scores = [fitness(chromosome) for chromosome in populasi]
+
+    # Handle the case where all fitness scores are zero
+    if all(score == 0 for score in fitness_scores):
+        # Set default weights or take appropriate action
+        fitness_scores = [1] * len(fitness_scores)
 
     chromosomeTerb = populasi[fitness_scores.index(max(fitness_scores))]
     best_fitness = max(fitness_scores)
 
-    print(f"Generasi {generation}: Chromosome Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}")
+    print(
+        # f"Generasi {generation}: Pub_england Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}"
+        # f"Generasi {generation}: Fertilty Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}"
+        f"Generasi {generation}: Location Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}"
+    )
 
     new_populasi = []
     while len(new_populasi) < ukuranPopulasi:
@@ -60,4 +100,8 @@ for generation in range(generasiMaks):
 
 chromosomeTerb = populasi[fitness_scores.index(max(fitness_scores))]
 best_fitness = max(fitness_scores)
-print(f"\nHasil Akhir: Chromosome Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}")
+print(
+    # f"\nHasil Akhir: Pub_england Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}"
+    # f"\nHasil Akhir: Fertilty Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}"
+    f"\nHasil Akhir: Location Terbaik = {chromosomeTerb}, Best fitness = {best_fitness}"
+)
