@@ -16,8 +16,8 @@ label_encoder = LabelEncoder()
 # Load data from Excel file
 # file_path = "pub_england.xlsx"
 # file_path = "fertilty.xlsx"
-file_path = "geolocation.xlsx"
-sheet_name = "Sheet1"
+file_path = "geolocation.csv"
+sheet_name = "geolocation"
 df = pd.read_excel(file_path, sheet_name=sheet_name)
 
 # Encode the 'Name' column
